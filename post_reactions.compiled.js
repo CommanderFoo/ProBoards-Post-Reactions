@@ -1,10 +1,38 @@
+/**
+* @license
+* Post Reactions 1.0.0 - http://pixeldepth.net
+* http://support.proboards.com/user/2671
+* https://github.com/PopThosePringles/ProBoards-Post-Reactions
+*
+* The MIT License (MIT)
+*
+* Copyright (c) 2016 pixeldepth.net - http://support.proboards.com/user/2671
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
+(function(){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-//(function(){
 
 var Post_Reaction_Data = function () {
 	function Post_Reaction_Data() {
@@ -173,6 +201,9 @@ var Post_Reactions = function () {
 			if (yootil.user.logged_in()) {
 				this.create_reaction_button();
 			}
+
+			//yootil.event.after_search(this.create_post_reactions);
+			this.create_post_reactions();
 		}
 	}, {
 		key: "setup",
@@ -188,7 +219,7 @@ var Post_Reactions = function () {
 			// Create post lookup table for data
 
 			this.lookup = new Map();
-			var post_data = proboards.plugin.keys.data["pd_post_reactions"];
+			var post_data = proboards.plugin.keys.data[this.KEY];
 
 			for (var key in post_data) {
 				this.lookup.set(key, new Post_Reaction_Data(key, post_data[key]));
@@ -305,7 +336,7 @@ var Post_Reactions = function () {
 							reaction_data.add(user_id, id);
 							$("a.button[data-reaction='" + post_id + "']").text("Remove Reaction");
 
-							Post_Reactions.update_post(post_id);
+							Post_Reactions.update_post(post_id, true);
 
 							$reaction_dialog.dialog("close");
 						}
@@ -324,31 +355,8 @@ var Post_Reactions = function () {
 			$("a.button[data-reaction='" + post_id + "']").text("Add Reaction");
 		}
 	}, {
-		key: "fetch_post_id",
-		value: function fetch_post_id(control) {
-			var $post_row = $(control).closest("tr.item.post");
-			var post_id_parts = ($post_row.attr("id") || "").split("-");
-
-			if (post_id_parts && post_id_parts.length == 2) {
-				return ~ ~post_id_parts[1];
-			}
-
-			return 0;
-		}
-	}, {
-		key: "update_post",
-		value: function update_post() {
-			var post_id = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
-
-			if (post_id) {
-				var $post_row = $("tr.item.post#post-" + post_id);
-
-				console.log($post_row);
-			}
-		}
-	}, {
 		key: "possible_reactions",
-		get: function get() {
+		value: function possible_reactions() {
 			var html = "";
 
 			html += "<div class='pd-post-reactions-table'>";
@@ -379,13 +387,54 @@ var Post_Reactions = function () {
 
 			return html;
 		}
+	}, {
+		key: "fetch_post_id",
+		value: function fetch_post_id(control) {
+			var $post_row = $(control).closest("tr.item.post");
+			var post_id_parts = ($post_row.attr("id") || "").split("-");
+
+			if (post_id_parts && post_id_parts.length == 2) {
+				return ~ ~post_id_parts[1];
+			}
+
+			return 0;
+		}
+	}, {
+		key: "update_post",
+		value: function update_post() {
+			var post_id = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+			var adding = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+
+			if (post_id) {
+				var $post_row = $("tr.item.post#post-" + post_id);
+				var $table = $post_row.find("table[role='grid']:first");
+				var $left_cell = $table.find("td.left-panel");
+				var row_span = ~ ~$left_cell.attr("rowspan");
+				var $reactions_row = $table.find("tr.pd-post-reactions-row");
+
+				if (!$reactions_row.length) {
+					var row = document.createElement("tr");
+					var cell = document.createElement("td");
+
+					cell.innerHTML = Post_Reactions.fetch_post_reactions(post_id);
+					row.appendChild(cell);
+
+					$table.find("tbody:first").append(row);
+
+					$left_cell.attr("rowspan", row_span + 1);
+				} else {}
+			}
+		}
+	}, {
+		key: "create_post_reactions",
+		value: function create_post_reactions() {}
+	}, {
+		key: "fetch_post_reactions",
+		value: function fetch_post_reactions(post_id) {}
 	}]);
 
 	return Post_Reactions;
 }();
 
-$(function () {
-	Post_Reactions.init();
-});
-
-//})();
+$(Post_Reactions.init);
+})();

@@ -21,7 +21,7 @@ class Post_Reactions {
 			this.create_reaction_button();
 		}
 
-		//yootil.event.after_search(this.create_post_reactions);
+		yootil.event.after_search(this.create_post_reactions);
 		this.create_post_reactions();
 	}
 
@@ -251,4 +251,7 @@ class Post_Reactions {
 
 }
 
-$(Post_Reactions.init);
+$(function(){
+	Post_Reactions.init();
+});
+

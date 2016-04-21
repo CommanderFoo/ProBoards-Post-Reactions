@@ -56,10 +56,6 @@ class Post_Reactions {
 		return this.lookup.get(post_id.toString());
 	}
 
-	/**
-	 * TODO: use plugin settings for the text on button.
-	 */
-
 	static create_reaction_button(){
 		let $controls = yootil.get.post_controls();
 

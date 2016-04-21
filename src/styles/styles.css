@@ -40,6 +40,19 @@ div.pd-post-reactions-container {
 
 }
 
+div.pd-post-reactions-container span.pd-post-reactions-item {
+
+    display: inline-block;
+    text-align: center;
+
+}
+
+div.pd-post-reactions-container span.pd-post-reactions-item span.pd-post-reactions-item-title {
+
+    display: block;
+
+}
+
 div.pd-post-reactions-container span.pd-post-reactions-item:not(:last-child) {
 
     margin-right: 5px;

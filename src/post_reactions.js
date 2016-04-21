@@ -65,7 +65,7 @@ class Post_Reactions {
 
 		$controls.each(function(){
 			let post_id = Post_Reactions.fetch_post_id(this);
-			let word = "Add";
+			let btn_txt = Post_Reactions.settings.add_reaction;
 
 			if(post_id){
 				let user_id = yootil.user.id();
@@ -73,10 +73,10 @@ class Post_Reactions {
 				let has_reacted = (reaction_data && reaction_data.contains(user_id))? true : false;
 
 				if(has_reacted){
-					word = "Remove";
+					btn_txt = Post_Reactions.settings.remove_reaction;;
 				}
 
-				let $button = $("<a href='#' data-reaction='" + post_id + "' role='button' class='button'>" + word + " Reaction</a>");
+				let $button = $("<a href='#' data-reaction='" + post_id + "' role='button' class='button'>" + btn_txt + "</a>");
 
 				$button.on("click", Post_Reactions.button_handler.bind($button, post_id, user_id));
 
@@ -146,7 +146,7 @@ class Post_Reactions {
 				{
 
 					id: "btn-add-reaction",
-					text: "Add Reaction",
+					text: Post_Reactions.settings.add_reaction,
 					click: function(){
 						let $reaction_dialog = $(this);
 						let $selected_item = $reaction_dialog.find("span.pd-post-reactions-dialog-item[data-selected]");
@@ -176,7 +176,7 @@ class Post_Reactions {
 	static remove(reaction_data, post_id, user_id){
 		reaction_data.remove(user_id);
 		this.update_post(reaction_data);
-		$("a.button[data-reaction='" + post_id + "']").text("Add Reaction");
+		$("a.button[data-reaction='" + post_id + "']").text(this.settings.add_reaction);
 	}
 
 	static possible_reactions(){
@@ -186,20 +186,21 @@ class Post_Reactions {
 			html += "<div class='pd-post-reactions-row'>";
 
 			let counter = 0;
-			let iterator = this.settings.possible_reactions[Symbol.iterator]();
-			let item = iterator.next();
 
-			while(!item.done){
+			for(let item of this.settings.possible_reactions){
+				if(item.staff_only == 1 && !yootil.user.is_staff()){
+					continue;
+				}
+
 				html += "<div class='pd-post-reactions-cell'>";
-					html += "<span class='pd-post-reactions-dialog-item' data-reaction='" + item.value.unique_id + "'>";
-						html += "<img src='" + item.value.image_url + "' title='" + item.value.title + "' />";
+					html += "<span class='pd-post-reactions-dialog-item' data-reaction='" + item.unique_id + "'>";
+						html += "<img src='" + item.image_url + "' title='" + item.title + "' />";
 					html += "</span>";
 				html += "</div>";
 
-				item = iterator.next();
 				counter ++;
 
-				if(counter == Post_Reactions.settings.reactions_per_row){
+				if(counter == this.settings.reactions_per_row){
 					html += "</div><div class='pd-post-reactions-row'>";
 					counter = 0;
 				}
@@ -276,8 +277,27 @@ class Post_Reactions {
 			});
 
 			if(reaction){
+				let total = "";
+
+				if(this.settings.show_counts == 1){
+					total = " x " + count;
+				}
+
+				let title = "";
+
+				if(this.settings.show_titles == 1){
+					title = "<span class='pd-post-reactions-item-title'>" + reaction.title;
+
+					if(total.length){
+						title += "<br />" + total;
+					}
+
+					title += "</span>";
+				}
+
 				html += "<span class='pd-post-reactions-item' data-reaction='" + reaction.unique_id + "'>";
-					html += "<img src='" + reaction.image_url + "' title='" + reaction.title + " x " + count + "' />";
+					html += "<img src='" + reaction.image_url + "' title='" + reaction.title + total + "' />";
+					html += title;
 				html += "</span>";
 			}
 		}

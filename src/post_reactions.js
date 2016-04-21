@@ -21,7 +21,11 @@ class Post_Reactions {
 			this.create_reaction_button();
 		}
 
-		yootil.event.after_search(this.create_post_reactions);
+		yootil.event.after_search(() => {
+			this.create_post_reactions.bind(this)();
+			this.create_reaction_button();
+		});
+
 		this.create_post_reactions();
 	}
 
@@ -153,7 +157,7 @@ class Post_Reactions {
 							reaction_data.add(user_id, id);
 							$("a.button[data-reaction='" + post_id + "']").text("Remove Reaction");
 
-							Post_Reactions.update_post(post_id, true);
+							Post_Reactions.update_post(reaction_data);
 
 							$reaction_dialog.dialog("close");
 
@@ -171,6 +175,7 @@ class Post_Reactions {
 
 	static remove(reaction_data, post_id, user_id){
 		reaction_data.remove(user_id);
+		this.update_post(reaction_data);
 		$("a.button[data-reaction='" + post_id + "']").text("Add Reaction");
 	}
 
@@ -217,36 +222,67 @@ class Post_Reactions {
 		return 0;
 	}
 
-	static update_post(post_id = 0, adding = true){
-		if(post_id){
+	static update_post(reaction_data){
+		if(reaction_data && reaction_data.post_id){
+			let data = reaction_data.data;
+			let post_id = reaction_data.post_id;
 			let $post_row = $("tr.item.post#post-" + post_id);
-			let $table = $post_row.find("table[role='grid']:first");
-			let $left_cell = $table.find("td.left-panel");
-			let row_span = ~~ $left_cell.attr("rowspan");
-			let $reactions_row = $table.find("tr.pd-post-reactions-row");
+			let $foot = $post_row.find("td.foot");
+			let $reactions_div = $foot.find("div.pd-post-reactions-container");
 
-			if(!$reactions_row.length){
-				let row = document.createElement("tr");
-				let cell = document.createElement("td");
+			if(data.constructor == Array && data.length > 0){
+				if(!$reactions_div.length){
+					$reactions_div = $("<div class='pd-post-reactions-container'></div>");
 
-				cell.innerHTML = Post_Reactions.fetch_post_reactions(post_id);
-				row.appendChild(cell);
+					if($foot.has("div.signature").length){
+						$foot.find("div.signature").before($reactions_div);
+					} else {
+						$foot.append($reactions_div);
+					}
+				}
 
-				$table.find("tbody:first").append(row);
-
-				$left_cell.attr("rowspan", row_span + 1);
-			} else {
-
+				$reactions_div.html(Post_Reactions.fetch_post_reactions(reaction_data.data));
+			} else if($reactions_div.length == 1){
+				$reactions_div.remove();
 			}
 		}
 	}
 
 	static create_post_reactions(){
-
+		for(let reaction_data of this.lookup.values()){
+			this.update_post(reaction_data);
+		}
 	}
 
-	static fetch_post_reactions(post_id){
+	static fetch_post_reactions(reaction_data){
+		let data_iterator = reaction_data[Symbol.iterator]();
+		let counts = new Map();
+		let data_item = data_iterator.next();
 
+		while(!data_item.done){
+			if(!counts.has(data_item.value.r)){
+				counts.set(data_item.value.r, 0);
+			}
+
+			counts.set(data_item.value.r, (counts.get(data_item.value.r) + 1));
+			data_item = data_iterator.next();
+		}
+
+		let html = "";
+
+		for(let [id, count] of counts){
+			let reaction = this.settings.possible_reactions.find((obj) => {
+				return (~~ obj.unique_id) === id;
+			});
+
+			if(reaction){
+				html += "<span class='pd-post-reactions-item' data-reaction='" + reaction.unique_id + "'>";
+					html += "<img src='" + reaction.image_url + "' title='" + reaction.title + " x " + count + "' />";
+				html += "</span>";
+			}
+		}
+
+		return html;
 	}
 
 }

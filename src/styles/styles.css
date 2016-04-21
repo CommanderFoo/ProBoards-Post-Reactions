@@ -32,3 +32,16 @@ div.pd-post-reactions-dialog span.pd-post-reactions-dialog-item {
     opacity: 0.5;
 
 }
+
+div.pd-post-reactions-container {
+
+    text-align: right;
+    font-size: 80%;
+
+}
+
+div.pd-post-reactions-container span.pd-post-reactions-item:not(:last-child) {
+
+    margin-right: 5px;
+
+}

@@ -57,7 +57,7 @@ class Post_Reactions {
 	}
 
 	static create_reaction_button(){
-		let $controls = yootil.get.post_controls();
+		let $controls = $("tr.item[id^=post-] .controls");
 
 		$controls.each(function(){
 			let post_id = Post_Reactions.fetch_post_id(this);

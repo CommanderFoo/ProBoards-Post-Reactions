@@ -183,7 +183,10 @@ class Post_Reactions {
 
 			let counter = 0;
 
-			for(let item of this.settings.possible_reactions){
+			//for(let item of this.settings.possible_reactions){
+			for(let i = 0, l = this.settings.possible_reactions.length; i < l; i ++){
+				let item = this.settings.possible_reactions[i];
+
 				if(item.staff_only == 1 && !yootil.user.is_staff()){
 					continue;
 				}
@@ -246,13 +249,13 @@ class Post_Reactions {
 	}
 
 	static create_post_reactions(){
-		for(let reaction_data of this.lookup.values()){
-			this.update_post(reaction_data);
-		}
+		this.lookup.forEach(function(val, key, m){
+			this.update_post(val);
+		}.bind(this));
 	}
 
 	static fetch_post_reactions(reaction_data){
-		let data_iterator = reaction_data[Symbol.iterator]();
+		/*let data_iterator = reaction_data[Symbol.iterator]();
 		let counts = new Map();
 		let data_item = data_iterator.next();
 
@@ -263,20 +266,32 @@ class Post_Reactions {
 
 			counts.set(data_item.value.r, (counts.get(data_item.value.r) + 1));
 			data_item = data_iterator.next();
+		}*/
+
+		let counts = new Map();
+
+		for(let data in reaction_data){
+			if(!counts.has(reaction_data[data].r)){
+				counts.set(reaction_data[data].r, 0);
+			}
+
+			counts.set(reaction_data[data].r, (counts.get(reaction_data[data].r) + 1));
 		}
 
 		let html = "";
 
-		for(let [id, count] of counts){
-			let reaction = this.settings.possible_reactions.find((obj) => {
-				return (~~ obj.unique_id) === id;
-			});
+		counts.forEach(function(val, key, map){
+			/*let reaction = this.settings.possible_reactions.find((obj) => {
+				return (~~ obj.unique_id) === key;
+			});*/
+
+			let reaction = this.find_reaction(key);
 
 			if(reaction){
 				let total = "";
 
 				if(this.settings.show_counts == 1){
-					total = " x " + count;
+					total = " x " + val;
 				}
 
 				let title = "";
@@ -296,9 +311,19 @@ class Post_Reactions {
 					html += title;
 				html += "</span>";
 			}
-		}
+		}.bind(this));
 
 		return html;
+	}
+
+	static find_reaction(id = 0){
+		for(let i = 0, l = this.settings.possible_reactions.length; i < l; i ++){
+			if((~~ this.settings.possible_reactions[i].unique_id) == id){
+				return this.settings.possible_reactions[i];
+			}
+		}
+
+		return false;
 	}
 
 }

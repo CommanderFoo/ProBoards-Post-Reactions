@@ -17,9 +17,10 @@ class Post_Reaction_Data {
 		let parsed = [];
 
 		if(data.constructor == Array && data.length){
-			for(let value of data){
-				if(yootil.is_json(value)){
-					parsed.push(JSON.parse(value));
+			for(let i = 0, l = data.length; i < l; i ++){
+//			for(let value of data){
+				if(yootil.is_json(data[i])){
+					parsed.push(JSON.parse(data[i]));
 				}
 			}
 		}
@@ -28,8 +29,9 @@ class Post_Reaction_Data {
 	}
 
 	contains(user_id){
-		for(let reactors of this._data){
-			if(reactors.u == yootil.user.id()){
+		for(let reactor in this._data){
+		//for(let reactors of this._data){
+			if(this._data[reactor].u == yootil.user.id()){
 				return true;
 			}
 		}
@@ -61,10 +63,11 @@ class Post_Reaction_Data {
 		let new_data = [];
 		let stringed_data = [];
 
-		for(let value of this._data){
-			if(value.u != yootil.user.id()){
-				new_data.push(value);
-				stringed_data.push(JSON.stringify(value));
+		for(let reactor in this._data){
+		//for(let value of this._data){
+			if(this._data[reactor].u != yootil.user.id()){
+				new_data.push(this._data[reactor]);
+				stringed_data.push(JSON.stringify(this._data[reactor]));
 			}
 		}
 

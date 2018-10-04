@@ -1,3 +1,28 @@
+/**
+* @license
+* The MIT License (MIT)
+*
+* Copyright (c) 2018 pixeldepth.net - http://support.proboards.com/user/2671
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
 class Post_Reactions {
 
 	static init(){
@@ -348,3 +373,85 @@ class Post_Reactions {
 
 }
 
+
+
+class Post_Reaction_Data {
+
+	constructor(post_id = 0, data = []){
+		this._post_id = post_id;
+		this._data = this.parse_data(data);
+	}
+
+	get post_id(){
+		return this._post_id;
+	}
+
+	get data(){
+		return this._data;
+	}
+
+	parse_data(data = []){
+		let parsed = [];
+
+		if(data.constructor == Array && data.length){
+			for(let i = 0, l = data.length; i < l; i ++){
+//			for(let value of data){
+				if(yootil.is_json(data[i])){
+					parsed.push(JSON.parse(data[i]));
+				}
+			}
+		}
+
+		return parsed;
+	}
+
+	contains(user_id){
+		for(let reactor in this._data){
+		//for(let reactors of this._data){
+			if(this._data[reactor].u == yootil.user.id()){
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	add(user_id, reaction_id){
+		let current_data = yootil.key.value(Post_Reactions.KEY, this._post_id);
+		let entry = {
+
+			u: user_id,
+			r: reaction_id
+
+		};
+
+		let d = JSON.stringify(entry);
+
+		if(!current_data || !current_data.constructor == Array){
+			yootil.key.set(Post_Reactions.KEY, [d], this._post_id);
+		} else {
+			yootil.key.push(Post_Reactions.KEY, d, this._post_id);
+		}
+
+		this._data.push(entry);
+	}
+
+	remove(user_id){
+		let new_data = [];
+		let stringed_data = [];
+
+		for(let reactor in this._data){
+		//for(let value of this._data){
+			if(this._data[reactor].u != yootil.user.id()){
+				new_data.push(this._data[reactor]);
+				stringed_data.push(JSON.stringify(this._data[reactor]));
+			}
+		}
+
+		this._data = new_data;
+		yootil.key.set(Post_Reactions.KEY, stringed_data, this._post_id);
+	}
+
+}
+
+Post_Reactions.init();
